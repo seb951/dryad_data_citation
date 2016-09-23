@@ -9,17 +9,17 @@ journals =  c("Molecular Ecology","PLoS ONE","Evolution","Proceedings of the Roy
 
 ###Code exists in a directory called "Rcode"
 ###figures will be stores in a directory called "figures "
-if(file.exists("../figures") == F) print("Please make a directory called ../figures")
+if(file.exists("figures") == F) print("Please make a directory called figures")
 ###dataretrieve from webofscience is stored in directory called "webofscience"
-if(file.exists("../webofscience") == F) print("Please make a directory called ../webofscience")
-#the webofscience data is stored in TEN subdirectories within ../webofscience. each directory is labelled the name of one of the top ten journals that published data to dryad (gsub(" ","_",tolower(journals[j]))).
+if(file.exists("webofscience") == F) print("Please make a directory called webofscience")
+#the webofscience data is stored in TEN subdirectories within webofscience. each directory is labelled the name of one of the top ten journals that published data to dryad (gsub(" ","_",tolower(journals[j]))).
 #Within web of science's Core collection, I searched for the name of the journal, the years 2010-2016 and then refining it only for document types "articles".
 #Downloading citations "full record" in the "tab-delimited win UTF-8". You can only download 500 at a time due to internal limits by webofscience, which you can save as seperate files ("savedrecs.txt") within each subdirectory
 #also remove the apostrophe's in files because R does not like them!!!!!
 #Note that for PLOS One, I chose only papers with the topic ecology OR evolution OR genetics, sorted from A-Z by author and downloaded the first 2500 hits.
 #Note that for PRSB, I chose only papers with the topic ecology OR evolution OR genetics
 
-###dryad data (one file per year) is stored in a directory called ".."
+###dryad data (one file per year) is stored in the same directory as the Rcode.
 
 ###helper function from Piwowar and Vison 2013
 calcCI.exp= function(res, param) {
@@ -48,13 +48,13 @@ all_info_year = list(1,1,1,1,1,1,1)
 
 for(f in 1:7)
 {
-	if(file.exists(paste("../info_",full[f],sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
+	if(file.exists(paste("info_",full[f],sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
 	###get info of interest from large file using Unix grep.
   #i'll be easier to grep on authors for 3 lines extra...
-	system(paste("grep 'span class=\"author\"' -A 3 ../test_dryad/",full[f], "_all.html >../info_",full[f],sep = ""))
+	system(paste("grep 'span class=\"author\"' -A 3 test_dryad/",full[f], "_all.html >info_",full[f],sep = ""))
 	
 	###load data in R
-	info = read.table(paste("../info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
+	info = read.table(paste("info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
 	
 	#then parse the info and clean it up
 	author = info[seq(1,nrow(info),by = 5),1]
@@ -96,20 +96,20 @@ for(j in 1:length(journals))
 #for(j in c(1,3,5,6))
 {
   #find out the names of the files as they appear in the directories containing the info from webofscience and named after the journals
-	system(paste("ls -1 ../webofscience/",gsub(" ","_",tolower(journals[j]))," >../webofscience/temp_list",sep =""))
+	system(paste("ls -1 webofscience/",gsub(" ","_",tolower(journals[j]))," >webofscience/temp_list",sep =""))
 	
   #load the names of all the files 
-  temp_list = read.table("../webofscience/temp_list",stringsAsFactors = F,header = F)
+  temp_list = read.table("webofscience/temp_list",stringsAsFactors = F,header = F)
 	
   #result object that will contain the web of science info per journal
   temp_journal_webofscience = NULL
 	for(t in 1:nrow(temp_list))
 	{
 	  #get only the columns of interests from the web of science files
-		system(paste("awk -F \"\\t\" 'BEGIN { OFS = \"\\t\" } {print $2,$9,$10, $33, $45}' ../webofscience/",gsub(" ","_",tolower(journals[j])),"/",temp_list[t,1]," >../webofscience/temp",t,sep = ""))
+		system(paste("awk -F \"\\t\" 'BEGIN { OFS = \"\\t\" } {print $2,$9,$10, $33, $45}' webofscience/",gsub(" ","_",tolower(journals[j])),"/",temp_list[t,1]," >webofscience/temp",t,sep = ""))
 		
 	  #load it
-		temp_journal_webofscience_sub = read.table(paste("../webofscience/temp",t,sep = ""),header = T, sep = "\t",stringsAsFactors = F,quote = "")
+		temp_journal_webofscience_sub = read.table(paste("webofscience/temp",t,sep = ""),header = T, sep = "\t",stringsAsFactors = F,quote = "")
 		colnames(temp_journal_webofscience_sub)[5] = "YR"
 		#Rbind it for all files
 		temp_journal_webofscience = rbind(temp_journal_webofscience, temp_journal_webofscience_sub)
@@ -227,9 +227,12 @@ number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]])
 barplot(number_pub, names.arg =full, ylab = "Number of dryad datasets (2016 = up to May 10th)")# main = "Total number of papers with dryad dataset")
 axis(1,at = 4.4, labels = "Year of publication", line = 1, lwd.ticks = 0,lty = 0)
 
-dev.print(device=pdf, "../figures/Figure1.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure1.pdf", onefile=FALSE)
 dev.off()
 
+###
+###FIGURE 2
+###
 pub_year_unique = unique(sort(c(pub_year[[1]], pub_year[[2]], pub_year[[3]], pub_year[[4]], pub_year[[5]], pub_year[[6]], pub_year[[7]])))
 pub_year_unique2 = cbind(rep(0,length(pub_year_unique)),0,0,0,0,0,0,0)
 rownames(pub_year_unique2) = pub_year_unique
@@ -244,14 +247,30 @@ for(p in 1:nrow(pub_year_unique2))
 }
 pub_year_unique2 = pub_year_unique2[order(as.numeric(pub_year_unique2[,8]),decreasing = T),]
 
-###
-###FIGURE 2
-###
-par(mar = c(12,4,4,2))
-barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = c("grey10","gray20","gray30","gray40","gray50","gray60","gray70"),yaxt = "n", ylab ="Number of submissions") #main = "Rise in Dryad package for top 10 journals",
+par(mar = c(10,4,4,2))
+coco = c("darkblue","yellow","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
+coco_palette = rep("a",70)
+for(i in 1:10)
+{
+	coco_palette[((i*7)-6): (i*7)] = colorRampPalette(c("white", coco[i]))(7)	
+}
+
+barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n", ylab ="Number of submissions") #main = "Rise in Dryad package for top 10 journals",
 axis(side = 2, at = c(0,100,200,300,400,500,600),labels =c(0,100,200,300,400,500,600),lwd  = 4,col = "black")#left
-mtext(rownames(pub_year_unique2)[1:10],side = 1,las = 3,at = (c(1:10)*8)-2.5,cex = 0.8)
-legend(y = 500,x=45,legend = full2,fill = c("grey10","gray20","gray30","gray40","gray50","gray60","gray70"))
+text(x = seq(5,80,by = 8), y = -10, rownames(pub_year_unique2)[1:10],srt = 45, cex= 0.8, xpd = T, col = "black", adj = 1)
+
+
+for(i in 1:10)
+{
+if(i<10) legend(y = 500,x=(45 + (i/2) -0.5),legend = rep("",7),fill = coco_palette[((i*7)-6):(i*7)], border = "white", bty = "n",cex = 1)
+if(i == 10) legend(y = 500,x=(45 + (i/2) -0.5),legend = full2,fill = coco_palette[((i*7)-6):(i*7)], border = "white", bty = "n",cex = 1)
+if(i == 10) legend(y = 500,x=(45 + (i/2)),legend = rep("",7),fill = "white", border = "white", bty = "n")
+}
+for(i in 1:7)
+{
+rect(47.1, 290+ (29*(i-1)),52.3, 306+(29*(i-1)), border = "black")
+if(i ==7) rect(45,278,71.5,500, border = "black",lwd = 2)
+}
 
 dev.print(device=pdf, "figures/Figure2.pdf", onefile=FALSE)
 dev.off()
@@ -260,9 +279,10 @@ dev.off()
 ###
 ###FIGURE 3
 ###
+par(mar = c(7,5,2,2))
 dryad_rise = matrix(,nrow = 7,ncol = 10)
 colnames(dryad_rise) = journals
-coco = palette(rainbow(10))
+coco = c("darkblue","yellow","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
 for(j in 1:10)
 {
   t2010 = journal_webofscience[[j]][journal_webofscience[[j]][,5] == 2010,7]
@@ -280,7 +300,7 @@ for(j in 1:10)
   if(j == 10) legend(x = 2010, y = 1, legend = journals, fill = coco, cex = 0.8)
 }
 
-dev.print(device=pdf, "../figures/Figure3.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure3.pdf", onefile=FALSE)
 dev.off()
 
 
@@ -288,7 +308,7 @@ dev.off()
 ###
 ###FIGURE 4
 ###
-pdf(file = "../figures/figure4.pdf", width = 6, height = 9) #
+pdf(file = "figures/Figure4.pdf", width = 6, height = 9) #
 par(mfrow= c(7,1), mar = c(2,5,2,2))
 	for(f in 1:6)
 	{
@@ -311,6 +331,16 @@ par(mfrow= c(7,1), mar = c(2,5,2,2))
 		polygon(dryad_density, col="#00999999")
 		}
 dev.off()
+
+
+
+for(i in 1:10)
+{
+if(i<10) legend(y = 500,x=(45 + (i/2) -0.5),legend = rep("",7),fill = coco_palette[((i*7)-6):(i*7)], border = "white", bty = "n",cex = 1)
+if(i == 10) legend(y = 500,x=(45 + (i/2) -0.5),legend = full2,fill = coco_palette[((i*7)-6):(i*7)], border = "white", bty = "n",cex = 1)
+if(i == 10) legend(y = 500,x=(45 + (i/2)),legend = rep("",7),fill = "white", border = "white", bty = "n")
+}
+
 
 
 
