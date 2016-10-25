@@ -48,13 +48,13 @@ all_info_year = list(1,1,1,1,1,1,1)
 
 for(f in 1:7)
 {
-	if(file.exists(paste("info_",full[f],sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
+	if(file.exists(paste("dryad_datasets_2010_2016/",full[f],"_all.html",sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
 	###get info of interest from large file using Unix grep.
   #i'll be easier to grep on authors for 3 lines extra...
-	system(paste("grep 'span class=\"author\"' -A 3 test_dryad/",full[f], "_all.html >info_",full[f],sep = ""))
+	system(paste("grep 'span class=\"author\"' -A 3 dryad_datasets_2010_2016/",full[f], "_all.html >dryad_datasets_2010_2016/info_",full[f],sep = ""))
 	
 	###load data in R
-	info = read.table(paste("info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
+	info = read.table(paste("dryad_datasets_2010_2016/info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
 	
 	#then parse the info and clean it up
 	author = info[seq(1,nrow(info),by = 5),1]
@@ -123,7 +123,7 @@ for(j in 1:length(journals))
 	
 	#clean up the data to get rid as much as possible of inconsistencies between the dryad and web of science datasets
   #The problem here is that authors often do not enter EXACTLY the same title as for their dryad entry. 
-	#There are many typos, differences with the ways accents are treated (England vs American English) and titles that get modified in final published version...
+	#There are many typos, differences with the ways accents are treated (England vs American spelling) and titles that get modified in final published version...
 	#the gsub functions below fix MOST problems, although it is likely that a very small proportion of errors remain and could only be fixed by visual inspections.
 	journal_webofscience[[j]][,8] = gsub(" ","", journal_webofscience[[j]][,8])
 	journal_webofscience[[j]][,8] = gsub(".","", journal_webofscience[[j]][,8],fixed = T)
@@ -217,21 +217,24 @@ print(anova(myfit_all))
 ###what is the effect size of "dataset" (in %)
 print(calcCI.exp(myfit_all, "dataset"))	
 
+###remove temp files
+system("rm webofscience/temp*")
+
+
 ###the rest of the code is to plot the four figures...
-
-
 ###
-###FIGURE 1
+###FIGURE 2
 ###
 number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),length(pub_year[[7]]))
-barplot(number_pub, names.arg =full, ylab = "Number of dryad datasets (2016 = up to May 10th)")# main = "Total number of papers with dryad dataset")
-axis(1,at = 4.4, labels = "Year of publication", line = 1, lwd.ticks = 0,lty = 0)
+barplot(number_pub, names.arg =full, ylab = "Number of Dryad datasets",font.lab = 2)# main = "Total number of papers with dryad dataset")
+points(8,1500, pch = 8, lwd = 2)
+axis(1,at = 4.4, labels = "Year of publication", line = 1, lwd.ticks = 0,lty = 0,font=2)
 
-dev.print(device=pdf, "figures/Figure1.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure2.pdf", onefile=FALSE)
 dev.off()
 
 ###
-###FIGURE 2
+###FIGURE 3
 ###
 pub_year_unique = unique(sort(c(pub_year[[1]], pub_year[[2]], pub_year[[3]], pub_year[[4]], pub_year[[5]], pub_year[[6]], pub_year[[7]])))
 pub_year_unique2 = cbind(rep(0,length(pub_year_unique)),0,0,0,0,0,0,0)
@@ -255,10 +258,10 @@ for(i in 1:10)
 	coco_palette[((i*7)-6): (i*7)] = colorRampPalette(c("white", coco[i]))(7)	
 }
 
-barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n", ylab ="Number of submissions") #main = "Rise in Dryad package for top 10 journals",
+barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n", ylab ="Number of Dryad submissions",font.lab =2)
 axis(side = 2, at = c(0,100,200,300,400,500,600),labels =c(0,100,200,300,400,500,600),lwd  = 4,col = "black")#left
 text(x = seq(5,80,by = 8), y = -10, rownames(pub_year_unique2)[1:10],srt = 45, cex= 0.8, xpd = T, col = "black", adj = 1)
-
+mtext("Journals",font = 2, side =1,line = 7)
 
 for(i in 1:10)
 {
@@ -272,12 +275,12 @@ rect(47.1, 290+ (29*(i-1)),52.3, 306+(29*(i-1)), border = "black")
 if(i ==7) rect(45,278,71.5,500, border = "black",lwd = 2)
 }
 
-dev.print(device=pdf, "figures/Figure2.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure3.pdf", onefile=FALSE)
 dev.off()
 
 
 ###
-###FIGURE 3
+###FIGURE 4
 ###
 par(mar = c(7,5,2,2))
 dryad_rise = matrix(,nrow = 7,ncol = 10)
@@ -295,20 +298,20 @@ for(j in 1:10)
   dryad_rise[,j] = c(sum(t2010)/length(t2010),sum(t2011)/length(t2011),sum(t2012)/length(t2012),sum(t2013)/length(t2013),sum(t2014)/length(t2014),sum(t2015)/length(t2015),sum(t2016)/length(t2016))
   dryad_rise[,j] = signif(dryad_rise[,j],3)
   
-  if(j == 1) plot(x = full[1:6], y = dryad_rise[1:6,1],type = "b",col = coco[j], lwd = 4,ylim = c(0,1), ylab = "% papers with dryad dataset",xlab = "Year of publication")#,main = "Rise in dryad datasets")
+  if(j == 1) plot(x = full[1:6], y = dryad_rise[1:6,1],type = "b",col = coco[j], lwd = 4,ylim = c(0,1), ylab = "Percentage of papers with Dryad dataset",xlab = "Year of publication", font.lab = 2)
   points(x = full[1:6], y = dryad_rise[1:6,j],type = "b",col = coco[j], lwd = 4)
   if(j == 10) legend(x = 2010, y = 1, legend = journals, fill = coco, cex = 0.8)
 }
 
-dev.print(device=pdf, "figures/Figure3.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure4.pdf", onefile=FALSE)
 dev.off()
 
 
 
 ###
-###FIGURE 4
+###FIGURE 5
 ###
-pdf(file = "figures/Figure4.pdf", width = 6, height = 9) #
+pdf(file = "figures/Figure5.pdf", width = 6, height = 9) #
 par(mfrow= c(7,1), mar = c(2,5,2,2))
 	for(f in 1:6)
 	{
@@ -323,8 +326,8 @@ par(mfrow= c(7,1), mar = c(2,5,2,2))
 		#if(f ==1) text(x = 10, y = -4.27,labels = paste(journals[1:5],collapse = "/"), xpd = NA,font = 2,cex = 0.6)
 		#if(f ==1) text(x = 10, y = -4.34,labels = paste(journals[6:10],collapse = "/"), xpd = NA,font = 2,cex = 0.6)
 		#if(f ==1) text(x = 10, y = 1,labels = "dryad dataset increases citation rate by 12%", xpd = NA,font = 2,cex = 1.2)
-		if(f ==6) {axis(side = 1, at = c(0,2,4,6,8) , labels = c(0,2,4,6,8), line = 1, lwd = 4);mtext(side = 1, text = "log(number of citations)", line = 4,cex = 1.3)}
-		if(f ==3) mtext(side = 2, text = "density", line = 3,cex = 1,adj = -1.5)
+		if(f ==6) {axis(side = 1, at = c(0,2,4,6,8) , labels = c(0,2,4,6,8), line = 1, lwd = 4);mtext(side = 1, text = "log(number of citations)", line = 4,cex = 1.3,font = 2)}
+		if(f ==3) mtext(side = 2, text = "Density", line = 3,cex = 1,adj = -1.5, font = 2)
 		text(x = 6 , y = ifelse(f ==6,1.3,0.5),labels =paste("n (no dataset) = ", length(temp_yr[temp_yr[,7]==0,9])), col = "red", font = 3)
 		text(x =6,y =  ifelse(f ==6,1,0.4), labels = paste("n (dryad dataset) = ", length(temp_yr[temp_yr[,7]==1,9])),col = "#00999999", font = 2)
 		polygon(random_density, col="red")
