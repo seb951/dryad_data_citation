@@ -204,7 +204,8 @@ for(j in 1:length(journals))
 ###print stats just to see the effect of the dryad dataset for each journals
 myfit = lm(log_citation ~ dataset + nb_authors + YR,data = journal_webofscience[[j]])
 print(journal_webofscience[[j]][1,c(3,10)])
-print(calcCI.exp(myfit, "dataset"))		
+print(calcCI.exp(myfit, "dataset"))	
+print(sum(journal_webofscience[[j]][,4])) #total nb of citation per journal	
 }
 
 ###run a multiple linear regression that includes all the factors (journal is not included, but instead impact factor is).
@@ -225,7 +226,9 @@ system("rm webofscience/temp*")
 ###
 ###FIGURE 2
 ###
-number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),length(pub_year[[7]]))
+#number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),length(pub_year[[7]]))
+number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),3963 / 11 * 12)
+
 barplot(number_pub, names.arg =full, ylab = "Number of Dryad datasets",font.lab = 2)# main = "Total number of papers with dryad dataset")
 points(8,1500, pch = 8, lwd = 2)
 axis(1,at = 4.4, labels = "Year of publication", line = 1, lwd.ticks = 0,lty = 0,font=2)

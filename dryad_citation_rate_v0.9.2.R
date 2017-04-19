@@ -1,7 +1,7 @@
 
 
 setwd("../")
-###Sébastien Renaut 2016
+###Sébastien Renaut 2017
 ###This R script is part of the analysis presented in "Sébastien Renaut, Amber E. Budden, Dominique Gravel, Timothée Poisot, Pedro Peres-Neto.
 ###Data curation and sharing for ecologists and the role of libraries in the 21st century"
 ###
