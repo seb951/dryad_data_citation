@@ -1,25 +1,11 @@
 
-
-setwd("../")
-###Sébastien Renaut 2017
+###Sébastien Renaut 2016
 ###This R script is part of the analysis presented in "Sébastien Renaut, Amber E. Budden, Dominique Gravel, Timothée Poisot, Pedro Peres-Neto.
 ###Data curation and sharing for ecologists and the role of libraries in the 21st century"
 ###
-#First get all the data for years 2012,2013,2014,2015,206 by hand
-#(trick: change the rpp to a lot!)
-#if there are more than 2000 entry, may not to download several webpages. You can cat then into a single file afterwards.
-
-#http://datadryad.org/discover?query=2010&submit=Go&filtertype=*&filter=&rpp=896&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2011&submit=Go&filtertype=*&filter=&rpp=1612&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2012&submit=Go&filtertype=*&filter=&rpp=2404&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2013&submit=Go&filtertype=*&filter=&rpp=3370&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2014&submit=Go&filtertype=*&filter=&rpp=4055&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2015&submit=Go&filtertype=*&filter=&rpp=5554&sort_by=score&order=DESC
-#http://datadryad.org/discover?query=2016&submit=Go&filtertype=*&filter=&rpp=7587&sort_by=score&order=DESC
-
 
 ###ten journals with most hits in Dryad
-journals =  c("Molecular Ecology","PLoS ONE","Evolution","Proceedings of the Royal Society B","Journal of Evolutionary Biology","The American Naturalist","Heredity","Molecular Ecology Resources","Biology Letters","Ecology and Evolution")
+journals =  c("Molecular Ecology","PLoS ONE","Evolution","Proceedings of the Royal Society B","Journal of Evolutionary Biology","The American Naturalist","Molecular Ecology Resources","Heredity","Ecology and Evolution","Systematic Biology")
 
 ###Code exists in a directory called "Rcode"
 ###figures will be stores in a directory called "figures "
@@ -54,7 +40,7 @@ calcCI.exp= function(res, param) {
 full = c(2010,2011,2012,2013,2014,2015,2016)
 
 ###2016 is partial
-full2 = full
+full2 = full;full2[7]="2016 (partial)"
 
 ###results stored in list
 pub_year = list(1,1,1,1,1,1,1)
@@ -62,13 +48,13 @@ all_info_year = list(1,1,1,1,1,1,1)
 
 for(f in 1:7)
 {
-	if(file.exists(paste("dryad_datasets_2010_2016_update_2017/",full[f],"_all.html",sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
+	if(file.exists(paste("dryad_datasets_2010_2016/",full[f],"_all.html",sep = "")) == F) print(paste("Please get the dryad info for year",full[f]))
 	###get info of interest from large file using Unix grep.
   #i'll be easier to grep on authors for 3 lines extra...
-	system(paste("grep 'span class=\"author\"' -A 3 dryad_datasets_2010_2016_update_2017/",full[f], "_all.html >dryad_datasets_2010_2016_update_2017/info_",full[f],sep = ""))
+	system(paste("grep 'span class=\"author\"' -A 3 dryad_datasets_2010_2016/",full[f], "_all.html >dryad_datasets_2010_2016/info_",full[f],sep = ""))
 	
 	###load data in R
-	info = read.table(paste("dryad_datasets_2010_2016_update_2017/info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
+	info = read.table(paste("dryad_datasets_2010_2016/info_",full[f],sep = ""), stringsAsFactors = F,sep = "\t", quote = "")
 	
 	#then parse the info and clean it up
 	author = info[seq(1,nrow(info),by = 5),1]
@@ -109,21 +95,21 @@ impact_factor =  c(6.5,3.2,4.6,5.1,3.5,4.7,3.7,3.8,2.3,7.8)
 for(j in 1:length(journals))
 #for(j in c(1,3,5,6))
 {
-	#find out the names of the files as they appear in the directories containing the info from webofscience and named after the journals
-	system(paste("ls -1 webofscience_update_2017/",gsub(" ","_",tolower(journals[j]))," > webofscience_update_2017/temp_list",sep =""))
+  #find out the names of the files as they appear in the directories containing the info from webofscience and named after the journals
+	system(paste("ls -1 webofscience2/",gsub(" ","_",tolower(journals[j]))," >webofscience2/temp_list",sep =""))
 	
-	#load the names of all the files 
-	temp_list = read.table("webofscience_update_2017/temp_list",stringsAsFactors = F,header = F)
+  #load the names of all the files 
+  temp_list = read.table("webofscience2/temp_list",stringsAsFactors = F,header = F)
 	
-	#result object that will contain the web of science info per journal
-	temp_journal_webofscience = NULL
+  #result object that will contain the web of science info per journal
+  temp_journal_webofscience = NULL
 	for(t in 1:nrow(temp_list))
 	{
-		#get only the columns of interests from the web of science files
-		system(paste("awk -F \"\\t\" 'BEGIN { OFS = \"\\t\" } {print $2,$9,$10, $33, $45}' webofscience_update_2017/",gsub(" ","_",tolower(journals[j])),"/",temp_list[t,1]," > webofscience_update_2017/temp",t,sep = ""))
-	
-		#load it
-		temp_journal_webofscience_sub = read.table(paste("webofscience_update_2017/temp",t,sep = ""),header = T, sep = "\t",stringsAsFactors = F,quote = "")
+	  #get only the columns of interests from the web of science files
+		system(paste("awk -F \"\\t\" 'BEGIN { OFS = \"\\t\" } {print $2,$9,$10, $33, $45}' webofscience2/",gsub(" ","_",tolower(journals[j])),"/",temp_list[t,1]," >webofscience2/temp",t,sep = ""))
+		
+	  #load it
+		temp_journal_webofscience_sub = read.table(paste("webofscience2/temp",t,sep = ""),header = T, sep = "\t",stringsAsFactors = F,quote = "")
 		colnames(temp_journal_webofscience_sub)[5] = "YR"
 		#Rbind it for all files
 		temp_journal_webofscience = rbind(temp_journal_webofscience, temp_journal_webofscience_sub)
@@ -161,11 +147,11 @@ for(j in 1:length(journals))
 	
 	###compare the webofscience with the dryad dataset	
 	dryad = NULL
-	for(f in 1:7)
+	for(f in 1:6)
 	{
 	  #this is do get the dryad info into a single matrix, instead of a list.
 		dryad = rbind(dryad,all_info_year[[f]][all_info_year[[f]][,1] == journals[j],])
-		if(f ==7) dryad = cbind(dryad, dryad[,2])
+		if(f ==6) dryad = cbind(dryad, dryad[,2])
 	}
 	
 	#clean up the data to get rid as much as possible of inconsistencies between the dryad and web of science datasets
@@ -233,7 +219,7 @@ print(anova(myfit_all))
 print(calcCI.exp(myfit_all, "dataset"))	
 
 ###remove temp files
-system("rm webofscience_update_2017/temp*")
+system("rm webofscience/temp*")
 
 
 ###the rest of the code is to plot the four figures...
@@ -241,10 +227,11 @@ system("rm webofscience_update_2017/temp*")
 ###FIGURE 2
 ###
 par(mar = c(7,5,4,2))
-number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),length(pub_year[[7]]))
+#number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),length(pub_year[[7]]))
+number_pub = c(length(pub_year[[1]]),length(pub_year[[2]]),length(pub_year[[3]]),length(pub_year[[4]]),length(pub_year[[5]]),length(pub_year[[6]]),3963 / 11 * 12)
 
 barplot(number_pub, names.arg =full, ylab = "Number of Dryad datasets",font.lab = 2,cex.lab =2 )# main = "Total number of papers with dryad dataset")
-#points(8,4500, pch = 8, lwd = 2,xpd = T)
+points(8,4500, pch = 8, lwd = 2,xpd = T)
 axis(1,at = 4.4, labels = "Year of publication", line = 2, lwd.ticks = 0,lty = 0,font=2,cex.axis = 2, lwd = 2)
 
 dev.print(device=pdf, "figures/Figure2updated.pdf", onefile=FALSE)
@@ -268,18 +255,17 @@ for(p in 1:nrow(pub_year_unique2))
 pub_year_unique2 = pub_year_unique2[order(as.numeric(pub_year_unique2[,8]),decreasing = T),]
 
 par(mar = c(10,4,4,2))
-coco = c("darkblue","yellow3","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
+coco = c("darkblue","yellow","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
 coco_palette = rep("a",70)
 for(i in 1:10)
 {
 	coco_palette[((i*7)-6): (i*7)] = colorRampPalette(c("white", coco[i]))(7)	
 }
 
-barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n")
+barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n", ylab ="Number of Dryad submissions",font.lab =2)
 axis(side = 2, at = c(0,100,200,300,400,500,600),labels =c(0,100,200,300,400,500,600),lwd  = 4,col = "black")#left
 text(x = seq(5,80,by = 8), y = -10, rownames(pub_year_unique2)[1:10],srt = 45, cex= 0.8, xpd = T, col = "black", adj = 1)
-mtext("Number of Dryad dataset",font = 2, side = 2, line = 2.4, cex = 2)
-mtext("Journals",font = 2, side =1,line = 7,cex = 2)
+mtext("Journals",font = 2, side =1,line = 7)
 
 for(i in 1:10)
 {
@@ -293,7 +279,7 @@ rect(47.1, 290+ (29*(i-1)),52.3, 306+(29*(i-1)), border = "black")
 if(i ==7) rect(45,278,71.5,500, border = "black",lwd = 2)
 }
 
-dev.print(device=pdf, "figures/Figure3updated.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure3.pdf", onefile=FALSE)
 dev.off()
 
 
@@ -303,7 +289,7 @@ dev.off()
 par(mar = c(7,5,2,2))
 dryad_rise = matrix(,nrow = 7,ncol = 10)
 colnames(dryad_rise) = journals
-coco = c("darkblue","yellow3","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
+coco = c("darkblue","yellow","chartreuse4","darkorange2","cyan4","darkmagenta","darkgoldenrod4","black","cadetblue4","darkred")
 for(j in 1:10)
 {
   t2010 = journal_webofscience[[j]][journal_webofscience[[j]][,5] == 2010,7]
@@ -316,12 +302,12 @@ for(j in 1:10)
   dryad_rise[,j] = c(sum(t2010)/length(t2010),sum(t2011)/length(t2011),sum(t2012)/length(t2012),sum(t2013)/length(t2013),sum(t2014)/length(t2014),sum(t2015)/length(t2015),sum(t2016)/length(t2016))
   dryad_rise[,j] = signif(dryad_rise[,j],3)
   
-  if(j == 1) plot(x = full[1:7], y = dryad_rise[1:7,1],type = "b",col = coco[j], lwd = 4,ylim = c(0,1),cex.lab = 1.7,ylab = "Proportion of papers with Dryad dataset",xlab = "Year of publication", font.lab = 2,font.axis =2,pch = rep(c(1:2),5)[j])
-  points(x = full[1:7], y = dryad_rise[1:7,j],type = "b",col = coco[j], lwd = 4,pch = c(1:10)[j])
-  if(j == 10) legend(x = 2010, y = 1, legend = journals, cex = 0.75,pch = c(1:10), col = coco, lwd = 2.4)  
+  if(j == 1) plot(x = full[1:6], y = dryad_rise[1:6,1],type = "b",col = coco[j], lwd = 4,ylim = c(0,1),cex.lab = 1.7,ylab = "Proportion of papers with Dryad dataset",xlab = "Year of publication", font.lab = 2,font.axis =2)
+  points(x = full[1:6], y = dryad_rise[1:6,j],type = "b",col = coco[j], lwd = 4,pch = ifelse(j <6,1,2))
+  if(j == 10) legend(x = 2010, y = 1, legend = journals[order(dryad_rise[6,],decreasing =T)], cex = 0.8,pch = c(1,2), col = coco[order(dryad_rise[6,],decreasing =T)], lwd = 2.4)  
 }
 
-dev.print(device=pdf, "figures/Figure4updated.pdf", onefile=FALSE)
+dev.print(device=pdf, "figures/Figure4.pdf", onefile=FALSE)
 dev.off()
 
 
