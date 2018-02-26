@@ -5,7 +5,7 @@ setwd("../")
 ###This R script is part of the analysis presented in "Sébastien Renaut, Amber E. Budden, Dominique Gravel, Timothée Poisot, Pedro Peres-Neto.
 ###Data curation and sharing for ecologists and the role of libraries in the 21st century"
 ###
-#First get all the data for years 2012,2013,2014,2015,206 by hand
+#First get all the data for years 2012,2013,2014,2015,2016 by hand
 #(trick: change the rpp to a lot!)
 #if there are more than 2000 entry, may not to download several webpages. You can cat then into a single file afterwards.
 
@@ -278,7 +278,7 @@ for(i in 1:10)
 barplot(t(pub_year_unique2[1:10,1:7]), beside = T,names.arg = rep("",10),col = coco_palette,yaxt = "n")
 axis(side = 2, at = c(0,100,200,300,400,500,600),labels =c(0,100,200,300,400,500,600),lwd  = 4,col = "black")#left
 text(x = seq(5,80,by = 8), y = -10, rownames(pub_year_unique2)[1:10],srt = 45, cex= 0.8, xpd = T, col = "black", adj = 1)
-mtext("Number of Dryad dataset",font = 2, side = 2, line = 2.4, cex = 2)
+mtext("Number of Dryad datasets",font = 2, side = 2, line = 2.4, cex = 2)
 mtext("Journals",font = 2, side =1,line = 7,cex = 2)
 
 for(i in 1:10)
@@ -290,7 +290,7 @@ if(i == 10) legend(y = 500,x=(45 + (i/2)),legend = rep("",7),fill = "white", bor
 for(i in 1:7)
 {
 rect(47.1, 290+ (29*(i-1)),52.3, 306+(29*(i-1)), border = "black")
-if(i ==7) rect(45,278,71.5,500, border = "black",lwd = 2)
+if(i ==7) rect(45,278,63,500, border = "black",lwd = 2)
 }
 
 dev.print(device=pdf, "figures/Figure3updated.pdf", onefile=FALSE)
